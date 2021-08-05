@@ -14,20 +14,51 @@ const States = {
 export default function App() {
   const [appState, setAppState] = useState(States.DEFAULT);
   const backgroundStyle: any[] = [styles.container];
-  if (appState === States.POMODORO_RUNNING) {
-    backgroundStyle.push(styles.pomodoroRunning);
+  switch(appState) {
+    case States.POMODORO_RUNNING:
+      backgroundStyle.push(styles.pomodoroRunning);
+      break;
+    case States.POMODORO_ENDED:
+      backgroundStyle.push(styles.pomodoroEnded);
+      break;
+    case States.BREAK_RUNNING:
+      backgroundStyle.push(styles.pomodoroBreakRunning);
+      break;
+    case States.BREAK_END:
+      backgroundStyle.push(styles.pomodoroBreakEnded);
+      break;
+    case States.DEFAULT:
+    default:
+      backgroundStyle.push(styles.pomodoroDefault);
+      break;
   }
   return (
     <View style={backgroundStyle}>
       <Text>Tomate!</Text>
       <Pressable onPress={() => {
-        if (appState === States.DEFAULT) {
+        if (appState === States.DEFAULT || appState === States.BREAK_END) {
           const now = new Date();
           console.log('Pomodoro started!', now);
           setAppState(States.POMODORO_RUNNING);
+          setTimeout(() => {
+            setAppState(States.POMODORO_ENDED);
+          }, 1000 * 60 * 25)
         }
       }}>
-      <Text>Press!</Text></Pressable>
+        <Text>Press!</Text>
+      </Pressable>
+      <Pressable onPress={() => {
+        if (appState === States.DEFAULT || appState === States.POMODORO_ENDED) {
+          const now = new Date();
+          console.log('Break-ing!', now);
+          setAppState(States.BREAK_RUNNING);
+          setTimeout(() => {
+            setAppState(States.BREAK_END);
+          }, 1000 * 60 * 5)
+        }
+      }}>
+        <Text>Break!</Text>
+      </Pressable>
       <StatusBar style="auto" />
     </View>
   );
@@ -40,7 +71,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  pomodoroDefault: {
+    backgroundColor: 'grey'
+  },
   pomodoroRunning: {
     backgroundColor: 'red',
   },
+  pomodoroEnded: {
+    backgroundColor: 'green'
+  },
+  pomodoroBreakRunning: {
+    backgroundColor: 'blue',
+  },
+  pomodoroBreakEnded: {
+    backgroundColor: 'purple'
+  }
 });
