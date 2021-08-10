@@ -27,20 +27,39 @@ function usePrevious(value: any) {
   return ref.current;
 }
 
+interface Event {
+  code: number;
+  timestamp: Date;
+}
+
+const EVENT_CODE = {
+  POMODORO_STARTED: 1,
+  POMODORO_ENDED: 2,
+  BREAK_STARTED: 3,
+  BREAK_ENDED: 4,
+}
+
+const EVENT_CODE_TO_NAME: any = {
+  1: 'POMODORO_STARTED',
+  2: 'POMODORO_ENDED',
+  3: 'BREAK_STARTED',
+  4: 'BREAK_ENDED',
+}
+
 export default function App() {
   const [appState, setAppState] = useState<number>(States.DEFAULT);
   const prevAppState = usePrevious(appState);
-  const [logList, setLogList] = useState<string[]>([]);
+  const [logList, setLogList] = useState<Event[]>([]);
   const backgroundStyle: any[] = [styles.container];
   applyStyle(backgroundStyle, appState);
 
   useEffect(() => {
-    function setTimerWithMsg(msg: string, duration: number, newState: number) {
+    function setTimerAndThenFireEvent(eventCode: number, duration: number, newState: number) {
       setTimeout(() => {
-        setLogList([msg + ' | ' + (new Date()).toString(), ...logList]);
+        setLogList([{code: eventCode, timestamp: new Date()}, ...logList]);
         setAppState(newState);
         if (Platform.OS === 'web') {
-          window.alert(msg)
+          window.alert(eventCode)
         } else {
           Alert.alert(
             "Alert Title",
@@ -59,9 +78,9 @@ export default function App() {
       }, duration);
     }
     if (prevAppState !== States.POMODORO_RUNNING && appState === States.POMODORO_RUNNING) {
-      setTimerWithMsg('Pomodoro ended', POMODORO_DURATION_IN_MILLIS, States.POMODORO_ENDED);
+      setTimerAndThenFireEvent(EVENT_CODE.POMODORO_ENDED, POMODORO_DURATION_IN_MILLIS, States.POMODORO_ENDED);
     } else if (prevAppState !== States.BREAK_RUNNING && appState === States.BREAK_RUNNING) {
-      setTimerWithMsg('Break ended', BREAK_DURATION_IN_MILLIS, States.BREAK_END);
+      setTimerAndThenFireEvent(EVENT_CODE.BREAK_ENDED, BREAK_DURATION_IN_MILLIS, States.BREAK_END);
     }
   }, [appState, logList]);
 
@@ -70,7 +89,7 @@ export default function App() {
       <Text>Tomate!</Text>
       <Pressable style={[styles.basicButton, styles.startPomodoroButton]} onPress={() => {
         if (appState !== States.POMODORO_RUNNING) {
-          setLogList(['Pomodoro started | ' + (new Date()).toString(), ...logList]);
+          setLogList([{code: EVENT_CODE.POMODORO_STARTED, timestamp: new Date()}, ...logList]);
           setAppState(States.POMODORO_RUNNING);
         }
       }}>
@@ -78,14 +97,14 @@ export default function App() {
       </Pressable>
       <Pressable style={[styles.basicButton, styles.startBreakButton]} onPress={() => {
         if (appState !== States.BREAK_RUNNING) {
-          setLogList(['Break started | ' + (new Date()).toString(), ...logList]);
+          setLogList([{code: EVENT_CODE.BREAK_STARTED, timestamp: new Date()}, ...logList]);
           setAppState(States.BREAK_RUNNING);
         }
       }}>
         <Text>Break!</Text>
       </Pressable>
-      <View>{logList.map(log => (
-        <Text>{log}</Text>
+      <View>{logList.map(event => (
+        <Text>{EVENT_CODE_TO_NAME[event.code] + ' | ' + event.timestamp.toString()}</Text>
       ))}</View>
       <StatusBar style="auto" />
     </View>
