@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-community/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { useRef } from 'react';
@@ -37,6 +38,8 @@ const EVENT_CODE = {
   POMODORO_ENDED: 2,
   BREAK_STARTED: 3,
   BREAK_ENDED: 4,
+
+  EVENT_LIST_INITIALIZED: 5,
 }
 
 const EVENT_CODE_TO_NAME: any = {
@@ -44,6 +47,8 @@ const EVENT_CODE_TO_NAME: any = {
   2: 'POMODORO_ENDED',
   3: 'BREAK_STARTED',
   4: 'BREAK_ENDED',
+
+  5: 'EVENT_LIST_INITIALIZED',
 }
 
 export default function App() {
@@ -54,12 +59,32 @@ export default function App() {
   applyStyle(backgroundStyle, appState);
 
   useEffect(() => {
+    async function initEventList() {
+      console.log('initEventList');
+      const eventList: string | null = await AsyncStorage.getItem('eventList');
+      if (eventList) {
+        try {
+          const parsedList = JSON.parse(eventList);
+          console.log('initEventList: setting initial list of size', parsedList.length);
+          const newList = [{code: EVENT_CODE.EVENT_LIST_INITIALIZED, timestamp: new Date()}, ...parsedList];
+          setLogList(newList);
+        } catch(err) {
+          console.log('initEventList: error parsing', eventList, err);
+        }
+      }
+    }
+    initEventList();
+  }, [])
+
+  useEffect(() => {
     function setTimerAndThenFireEvent(eventCode: number, duration: number, newState: number) {
       setTimeout(() => {
-        setLogList([{code: eventCode, timestamp: new Date()}, ...logList]);
+        const newList = [{code: eventCode, timestamp: new Date()}, ...logList];
+        setLogList(newList);
+        AsyncStorage.setItem('eventList', JSON.stringify(newList));
         setAppState(newState);
         if (Platform.OS === 'web') {
-          window.alert(eventCode)
+          window.alert(EVENT_CODE_TO_NAME[eventCode]);
         } else {
           Alert.alert(
             "Alert Title",
@@ -89,7 +114,9 @@ export default function App() {
       <Text>Tomate!</Text>
       <Pressable style={[styles.basicButton, styles.startPomodoroButton]} onPress={() => {
         if (appState !== States.POMODORO_RUNNING) {
-          setLogList([{code: EVENT_CODE.POMODORO_STARTED, timestamp: new Date()}, ...logList]);
+          const newList = [{code: EVENT_CODE.POMODORO_STARTED, timestamp: new Date()}, ...logList];
+          setLogList(newList);
+          AsyncStorage.setItem('eventList', JSON.stringify(newList));
           setAppState(States.POMODORO_RUNNING);
         }
       }}>
@@ -97,14 +124,16 @@ export default function App() {
       </Pressable>
       <Pressable style={[styles.basicButton, styles.startBreakButton]} onPress={() => {
         if (appState !== States.BREAK_RUNNING) {
-          setLogList([{code: EVENT_CODE.BREAK_STARTED, timestamp: new Date()}, ...logList]);
+          const newList = [{code: EVENT_CODE.BREAK_STARTED, timestamp: new Date()}, ...logList];
+          setLogList(newList);
+          AsyncStorage.setItem('eventList', JSON.stringify(newList));
           setAppState(States.BREAK_RUNNING);
         }
       }}>
         <Text>Break!</Text>
       </Pressable>
       <View>{logList.map(event => (
-        <Text>{EVENT_CODE_TO_NAME[event.code] + ' | ' + event.timestamp.toString()}</Text>
+        <Text>{EVENT_CODE_TO_NAME[event.code] + ' | ' + new Date(event.timestamp).toISOString()}</Text>
       ))}</View>
       <StatusBar style="auto" />
     </View>
