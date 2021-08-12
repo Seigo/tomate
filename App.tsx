@@ -110,28 +110,30 @@ export default function App() {
   }, [appState, logList]);
 
   return (
-    <View style={backgroundStyle}>
-      <Text>Tomate!</Text>
-      <Pressable style={[styles.basicButton, styles.startPomodoroButton]} onPress={() => {
-        if (appState !== States.POMODORO_RUNNING) {
-          const newList = [{code: EVENT_CODE.POMODORO_STARTED, timestamp: new Date()}, ...logList];
-          setLogList(newList);
-          AsyncStorage.setItem('eventList', JSON.stringify(newList));
-          setAppState(States.POMODORO_RUNNING);
-        }
-      }}>
-        <Text>Press!</Text>
-      </Pressable>
-      <Pressable style={[styles.basicButton, styles.startBreakButton]} onPress={() => {
-        if (appState !== States.BREAK_RUNNING) {
-          const newList = [{code: EVENT_CODE.BREAK_STARTED, timestamp: new Date()}, ...logList];
-          setLogList(newList);
-          AsyncStorage.setItem('eventList', JSON.stringify(newList));
-          setAppState(States.BREAK_RUNNING);
-        }
-      }}>
-        <Text>Break!</Text>
-      </Pressable>
+    <View>
+      <View style={backgroundStyle}>
+        <Text>Tomate!</Text>
+        <Pressable style={[styles.basicButton, styles.startPomodoroButton]} onPress={() => {
+          if (appState !== States.POMODORO_RUNNING) {
+            const newList = [{code: EVENT_CODE.POMODORO_STARTED, timestamp: new Date()}, ...logList];
+            setLogList(newList);
+            AsyncStorage.setItem('eventList', JSON.stringify(newList));
+            setAppState(States.POMODORO_RUNNING);
+          }
+        }}>
+          <Text>Press!</Text>
+        </Pressable>
+        <Pressable style={[styles.basicButton, styles.startBreakButton]} onPress={() => {
+          if (appState !== States.BREAK_RUNNING) {
+            const newList = [{code: EVENT_CODE.BREAK_STARTED, timestamp: new Date()}, ...logList];
+            setLogList(newList);
+            AsyncStorage.setItem('eventList', JSON.stringify(newList));
+            setAppState(States.BREAK_RUNNING);
+          }
+        }}>
+          <Text>Break!</Text>
+        </Pressable>
+      </View>
       <View>{logList.map(event => (
         <Text>{EVENT_CODE_TO_NAME[event.code] + ' | ' + new Date(event.timestamp).toISOString()}</Text>
       ))}</View>
