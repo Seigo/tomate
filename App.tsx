@@ -133,13 +133,41 @@ export default function App() {
         }}>
           <Text>Break!</Text>
         </Pressable>
+        <Pressable style={[styles.basicButton, styles.exportButton]} onPress={() => {
+          exportEvents(logList);
+        }}>
+          <Text>Export!</Text>
+        </Pressable>
+        <Pressable style={[styles.basicButton, styles.importButton]} onPress={() => {
+          importEvents(`{"code":3,"timestamp":"2021-08-18T18:28:49.576Z"}
+{"code":2,"timestamp":"2021-08-18T18:28:30.401Z"}
+{"code":1,"timestamp":"2021-08-18T18:03:30.419Z"}`);
+        }}>
+          <Text>Import!</Text>
+        </Pressable>
       </View>
-      <View>{logList.map(event => (
-        <Text>{EVENT_CODE_TO_NAME[event.code] + ' | ' + new Date(event.timestamp).toISOString()}</Text>
-      ))}</View>
+      <View>{logList.map(event => {
+        const timestampStr = new Date(event.timestamp).toISOString();
+        return (
+          <Text key={timestampStr}>{EVENT_CODE_TO_NAME[event.code] + ' | ' + timestampStr}</Text>
+        );
+      })}</View>
       <StatusBar style="auto" />
     </View>
   );
+}
+
+function exportEvents(events: any[]) {
+  let printed: any = events.map((e: any) => JSON.stringify(e));
+  printed = printed.join('\n');
+  console.log('printed:', printed)
+  // window.alert(printed);
+}
+
+function importEvents(jsonLines:string) {
+  let jsonList = jsonLines.split('\n');
+  jsonList = jsonList.map(j => JSON.parse(j));
+  console.log('jsonList:', jsonList)
 }
 
 function applyStyle(backgroundStyle: any[], appState: number) {
@@ -197,5 +225,11 @@ const styles = StyleSheet.create({
   },
   startBreakButton: {
     backgroundColor: 'blue',
+  },
+  exportButton: {
+    backgroundColor: 'green'
+  },
+  importButton: {
+    backgroundColor: 'green'
   }
 });
